@@ -1,5 +1,6 @@
 package com.coolweather.android;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
@@ -190,57 +191,58 @@ public class WeatherActivity extends AppCompatActivity {
 
     //显示天气信息
     private void showWeatherInfo(Weather weather){
-        if (weather.now != null){
-            if (weather.now.more != null){
-                if (weather.now.more.info != null){
-                }
+        if (weather != null && "ok".equals(weather.status)){
+            String cityName = weather.basic.cityName;   //城市名称
+            String updateTime = weather.basic.update.updateTime.split(" ")[1];  //更新时间
+            String degree = weather.now.temperature + "℃";   //温度
+            String weatherInfo = weather.now.more.info;     //天气状况
+            titleCity.setText(cityName);
+            titleUpdateTime.setText(updateTime);
+            degreeText.setText(degree);
+            weatherInfoText.setText(weatherInfo);
+
+            //预报天气布局信心
+            forcastLayout.removeAllViews();
+            //LogUtil.d("故障测试---", "遍历天气预报");
+            for (Forecast forecast : weather.forecastList){
+                View view = LayoutInflater.from(this).inflate(R.layout.forecast_item,
+                        forcastLayout, false);
+                TextView dateText = (TextView)view.findViewById(R.id.date_text);
+                TextView infoText = (TextView)view.findViewById(R.id.info_text);
+                TextView maxText = (TextView)view.findViewById(R.id.max_text);
+                TextView minText = (TextView)view.findViewById(R.id.min_text);
+                dateText.setText(forecast.date);
+                infoText.setText(forecast.more.info);
+                maxText.setText(forecast.temprature.max);
+                minText.setText(forecast.temprature.min);
+                forcastLayout.addView(view);
             }
+
+            if (weather.aqi != null){
+                //如果空气质量状况信息不为空
+                aqiText.setText(weather.aqi.city.aqi);
+                pm25Text.setText(weather.aqi.city.pm25);
+            }
+
+            //建议小贴士
+            String comfort = "舒适度：" + weather.suggestion.comfort.info;
+            //LogUtil.d("故障测试---", comfort);
+            String carWash = "洗车指数：" + weather.suggestion.carWarsh.info;
+            //LogUtil.d("故障测试---", carWash);
+            String sport = "运动指数：" + weather.suggestion.sport.info;
+            //LogUtil.d("故障测试---", sport);
+
+            comfortText.setText(comfort);
+            carWashText.setText(carWash);
+            sportText.setText(sport);
+            weatherLayout.setVisibility(View.VISIBLE);
+            //启动定时自动更新服务
+            Intent intent = new Intent(this, AutoUpdateService.class);
+            startService(intent);
+        }else {
+            Toast.makeText(WeatherActivity.this, "获取天气失败！",
+                    Toast.LENGTH_SHORT).show();
         }
-
-        String cityName = weather.basic.cityName;   //城市名称
-        String updateTime = weather.basic.update.updateTime.split(" ")[1];  //更新时间
-        String degree = weather.now.temperature + "℃";   //温度
-        String weatherInfo = weather.now.more.info;     //天气状况
-        titleCity.setText(cityName);
-        titleUpdateTime.setText(updateTime);
-        degreeText.setText(degree);
-        weatherInfoText.setText(weatherInfo);
-
-        //预报天气布局信心
-        forcastLayout.removeAllViews();
-        //LogUtil.d("故障测试---", "遍历天气预报");
-        for (Forecast forecast : weather.forecastList){
-            View view = LayoutInflater.from(this).inflate(R.layout.forecast_item,
-                    forcastLayout, false);
-            TextView dateText = (TextView)view.findViewById(R.id.date_text);
-            TextView infoText = (TextView)view.findViewById(R.id.info_text);
-            TextView maxText = (TextView)view.findViewById(R.id.max_text);
-            TextView minText = (TextView)view.findViewById(R.id.min_text);
-            dateText.setText(forecast.date);
-            infoText.setText(forecast.more.info);
-            maxText.setText(forecast.temprature.max);
-            minText.setText(forecast.temprature.min);
-            forcastLayout.addView(view);
-        }
-
-        if (weather.aqi != null){
-            //如果空气质量状况信息不为空
-            aqiText.setText(weather.aqi.city.aqi);
-            pm25Text.setText(weather.aqi.city.pm25);
-        }
-
-        //建议小贴士
-        String comfort = "舒适度：" + weather.suggestion.comfort.info;
-        //LogUtil.d("故障测试---", comfort);
-        String carWash = "洗车指数：" + weather.suggestion.carWarsh.info;
-        //LogUtil.d("故障测试---", carWash);
-        String sport = "运动指数：" + weather.suggestion.sport.info;
-        //LogUtil.d("故障测试---", sport);
-
-        comfortText.setText(comfort);
-        carWashText.setText(carWash);
-        sportText.setText(sport);
-        weatherLayout.setVisibility(View.VISIBLE);
     }
 
     /**
