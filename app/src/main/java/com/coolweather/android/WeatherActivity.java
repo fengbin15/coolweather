@@ -22,6 +22,7 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.coolweather.android.gson.Forecast;
 import com.coolweather.android.gson.Weather;
+import com.coolweather.android.service.AutoUpdateService;
 import com.coolweather.android.util.HttpUtil;
 import com.coolweather.android.util.LogUtil;
 import com.coolweather.android.util.Utility;
@@ -33,6 +34,8 @@ import okhttp3.Callback;
 import okhttp3.Response;
 
 public class WeatherActivity extends AppCompatActivity {
+    //日志标签
+    String TAG = "WeatherActivity";
     //定义各种控件
     private ScrollView weatherLayout;
     private TextView titleCity;
@@ -165,7 +168,7 @@ public class WeatherActivity extends AppCompatActivity {
 //                    LogUtil.d("预报数据最小温度---", weather.forecastList.get(i).temprature.min);
 //                    LogUtil.d("预报数据天气状况---", weather.forecastList.get(i).more.info.toString());
 //                }
-                LogUtil.d("故障测试---", responseText + weather.status);
+                LogUtil.d("WeatherActivity", responseText + weather.status);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -184,7 +187,6 @@ public class WeatherActivity extends AppCompatActivity {
                 });
             }
         });
-
         //加载图片
         loadBingPic();
     }

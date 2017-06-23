@@ -1,4 +1,4 @@
-package com.coolweather.android;
+package com.coolweather.android.service;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -11,6 +11,7 @@ import android.preference.PreferenceManager;
 
 import com.coolweather.android.gson.Weather;
 import com.coolweather.android.util.HttpUtil;
+import com.coolweather.android.util.LogUtil;
 import com.coolweather.android.util.Utility;
 
 import java.io.IOException;
@@ -62,7 +63,7 @@ public class AutoUpdateService extends Service {
             String weatherUrl = "https://free-api.heweather.com/v5/weather?city=" +
                     weatherId + "&key=001be178c1a54af7971a895bebff259e";
             //网络请求获取数据
-            HttpUtil.sendOkHttpRequest(weatherId, new Callback() {
+            HttpUtil.sendOkHttpRequest(weatherUrl, new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
                     e.printStackTrace();
@@ -72,6 +73,7 @@ public class AutoUpdateService extends Service {
                 public void onResponse(Call call, Response response) throws IOException {
                     //从response中获取数据
                     String responseText = response.body().string();
+                    LogUtil.d("AutoUpdateService", responseText);
                     Weather weather = Utility.handleWeatherResponse(responseText);
                     if (weather != null && "ok".equals(weather.status)){
                         SharedPreferences.Editor editor = PreferenceManager.

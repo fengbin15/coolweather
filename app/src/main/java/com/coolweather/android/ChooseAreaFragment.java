@@ -36,6 +36,8 @@ import okhttp3.Response;
  */
 
 public class ChooseAreaFragment extends Fragment {
+    //日志标签
+    String TAG = "ChooseAreaFragment";
     //定义省市县三个级别
     public static final int LEVEL_PROVINCE = 0;
     public static final int LEVEL_CITY = 1;
@@ -63,6 +65,7 @@ public class ChooseAreaFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        LogUtil.d(TAG, "开始创建布局onCreateView");
         View view = inflater.inflate(R.layout.choose_area, container, false);  //添加碎片
         //获取布局中控件
         titleText = (TextView)view.findViewById(R.id.title_text);
@@ -77,25 +80,26 @@ public class ChooseAreaFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+        LogUtil.d(TAG, "进入onActivityCreate");
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                if (currentLevel == LEVEL_PROVINCE){
+                if (currentLevel == LEVEL_PROVINCE) {
                     selectedProvince = provinceList.get(position);
                     queryCities();
-                }else if (currentLevel  == LEVEL_CITY){
+                } else if (currentLevel == LEVEL_CITY) {
                     selectedCity = cityList.get(position);
                     queryCounties();
-                }else if (currentLevel == LEVEL_COUNTY){
+                } else if (currentLevel == LEVEL_COUNTY) {
                     //获取天气ID
                     String weatherId = countyList.get(position).getWeatherId();
-                    if (getActivity() instanceof MainActivity){
+                    if (getActivity() instanceof MainActivity) {
                         Intent intent = new Intent(getActivity(), WeatherActivity.class);
                         intent.putExtra("weather_id", weatherId);
                         startActivity(intent);
                         getActivity().finish();
-                    }else if (getActivity() instanceof WeatherActivity){
-                        WeatherActivity activity = (WeatherActivity)getActivity();
+                    } else if (getActivity() instanceof WeatherActivity) {
+                        WeatherActivity activity = (WeatherActivity) getActivity();
                         activity.drawerLayout.closeDrawers();
                         activity.swipeRefreshLayout.setRefreshing(true);
                         activity.requestWeather(weatherId);
@@ -104,19 +108,20 @@ public class ChooseAreaFragment extends Fragment {
             }
         });
         //返回按钮的点击事件
-        backButton.setOnClickListener(new View.OnClickListener(){
+        backButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (currentLevel == LEVEL_COUNTY){
+                if (currentLevel == LEVEL_COUNTY) {
                     queryCities();
-                }else if (currentLevel == LEVEL_CITY){
+                } else if (currentLevel == LEVEL_CITY) {
                     queryProvince();
                 }
             }
         });
-
         queryProvince();
+        LogUtil.d(TAG, "onActivityCreate执行完");
     }
+
 
     /**
      * 查询全国所有的省，优先从数据库中查询，没有再从服务器上查询
@@ -189,7 +194,6 @@ public class ChooseAreaFragment extends Fragment {
      * 根据传入的地址，从服务器上查询省市县的数据
      */
     private void queryFromServer(String address, final String type){
-//        LogUtil.d("故障调试", "进入queryFromServer");
         //显示进度对话框
         showProgressDialog();
         HttpUtil.sendOkHttpRequest(address, new Callback() {
@@ -209,7 +213,6 @@ public class ChooseAreaFragment extends Fragment {
             public void onResponse(Call call, Response response) throws IOException {
                 //获取返回的数据
                 String responseText = response.body().string();
-                LogUtil.d("故障调试", responseText);
                 boolean result = false;
                 if ("province".equals(type)){
                     //解析返回的数据
@@ -260,5 +263,15 @@ public class ChooseAreaFragment extends Fragment {
         if (progressDialog != null){
             progressDialog.dismiss();
         }
+    }
+
+    //自动定位成功调用该方法
+    public void autoLocation(){
+        //获取天气id
+        String weatherId = getActivity().getIntent().getStringExtra("weather_id");
+        Intent intent = new Intent(getActivity(), WeatherActivity.class);
+        intent.putExtra("weather_id", weatherId);
+        startActivity(intent);
+        getActivity().finish();
     }
 }
