@@ -44,6 +44,7 @@ public class WeatherActivity extends AppCompatActivity {
     private TextView weatherInfoText;
 
     private LinearLayout forcastLayout;
+    private LinearLayout includeLayout;
     private TextView aqiText;
     private TextView pm25Text;
     private TextView comfortText;
@@ -79,6 +80,7 @@ public class WeatherActivity extends AppCompatActivity {
         weatherInfoText = (TextView)findViewById(R.id.weather_info_text);
 
         forcastLayout = (LinearLayout)findViewById(R.id.forecast_layout);
+        includeLayout = (LinearLayout)findViewById(R.id.include_layout);
         aqiText = (TextView)findViewById(R.id.aqi_text);
         pm25Text = (TextView)findViewById(R.id.pm25_text);
         comfortText = (TextView)findViewById(R.id.comfort_text);
@@ -127,7 +129,6 @@ public class WeatherActivity extends AppCompatActivity {
         }else {
             loadBingPic();
         }
-
         //刷新响应操作
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -136,6 +137,11 @@ public class WeatherActivity extends AppCompatActivity {
                 requestWeather(weatherId);
             }
         });
+    }
+
+    //手动获取天气
+    private void manualWeather(){
+
     }
 
     //从服务器上获取天气信息
@@ -224,6 +230,11 @@ public class WeatherActivity extends AppCompatActivity {
                 //如果空气质量状况信息不为空
                 aqiText.setText(weather.aqi.city.aqi);
                 pm25Text.setText(weather.aqi.city.pm25);
+            }else{
+                aqiText.setText("无");
+                pm25Text.setText("无");
+//                LinearLayout aqiLayout = (LinearLayout)includeLayout.getChildAt(3);
+//                aqiLayout.setVisibility(View.INVISIBLE);
             }
 
             //建议小贴士

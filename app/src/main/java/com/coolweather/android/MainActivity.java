@@ -12,10 +12,14 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
+import com.coolweather.android.gson.Weather;
 import com.coolweather.android.service.AutoLocationService;
-import com.coolweather.android.util.LogUtil;
+import com.coolweather.android.util.Utility;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,12 +28,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //日志标签
     String TAG = "MainActivity";
 
+    //获取主活动布局
+    FrameLayout mainLayout = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
         //判断权限是否开启
         List<String> permissionList = new ArrayList<>();
         if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.
@@ -41,24 +46,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }else if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.
                 permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED){
             permissionList.add(Manifest.permission.READ_PHONE_STATE);
-        }else {
-            LogUtil.d("MainActivity", "开启服务");
-            Intent iLocation = new Intent(this, AutoLocationService.class);
-            startService(iLocation);
-            replaceFrament(new ChooseAreaFragment());
+        }else{
+            //启动定位服务
+            Intent autoIntent = new Intent(this, AutoLocationService.class);
+            startService(autoIntent);
         }
-        //缓冲天气信息数据
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        if (prefs.getString("weather", null) != null) {
-            Intent intent = new Intent(this, WeatherActivity.class);
-            startActivity(intent);
+
+        //检查缓冲区中是否存在天气数据，若存在则直接读取，否则继续
+        SharedPreferences mainPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String mWeatherString = mainPrefs.getString("weather", null);
+        if (mWeatherString != null){
+            //解析天气数据
+            Weather mWeather = Utility.handleWeatherResponse(mWeatherString);
+            String weatherId = mWeather.basic.weatherId;
+            Intent mIntent = new Intent(this, WeatherActivity.class);
+            mIntent.putExtra("weather_id", weatherId);
+            startActivity(mIntent);
             finish();
         }
-        finish();
+
+        //获取按钮实例并添加点击事件
+        mainLayout = (FrameLayout)findViewById(R.id.main_layout);
+        Button manualWeatherButton = (Button)findViewById(R.id.manual_weather_button);
+        Button autoWeatherButton = (Button)findViewById(R.id.auto_weather_button);
+        //添加事件
+        manualWeatherButton.setOnClickListener(this);
+        autoWeatherButton.setOnClickListener(this);
     }
 
     //动态添加碎片
-    private void replaceFrament(Fragment fragment){
+    private void replaceFragment(Fragment fragment){
         FragmentManager manager = getSupportFragmentManager();   //碎片管理器
         FragmentTransaction transaction = manager.beginTransaction(); //开启事务
         transaction.replace(R.id.main_layout, fragment);
@@ -86,8 +103,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             return;
                         }
                     }
-                    Intent iLocation = new Intent(this, AutoLocationService.class);
-                    startService(iLocation);
+                    //启动定位服务
+                    Intent autoIntent = new Intent(this, AutoLocationService.class);
+                    startService(autoIntent);
                 }else {
                     Toast.makeText(this, "发生未知错误！", Toast.LENGTH_SHORT).show();
                     finish();
@@ -101,6 +119,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View view) {
         switch (view.getId()){
+            case R.id.manual_weather_button:
+                SharedPreferences.Editor editor = PreferenceManager.
+                        getDefaultSharedPreferences(this).edit();
+                editor.putString("weather", null);
+                editor.apply();
+                replaceFragment(new ChooseAreaFragment());
+                break;
+            case R.id.auto_weather_button:
+                replaceFragment(new AutoShowWeatherFragment());
+                break;
             default:
                 break;
         }
